@@ -7,23 +7,34 @@ function Convert-PubFileToPdf {
     Converts Microsoft Publisher .pub files to PDF format.
 
     .DESCRIPTION
-    Converts one or more .pub files to PDF using Microsoft Publisher COM automation.
-    Accepts pipeline input from path strings or objects with a FullName property.
-    Only successful conversions are written to the output pipeline.
-    Optionally logs all transaction outcomes (success and non-success) to a local CSV file.
+    Converts Microsoft Publisher .pub files to PDF using Microsoft Publisher COM automation.
+    Microsoft Publisher must be installed and accessible on the computer running this function.
+    Path values may identify a file, directory, or wildcard pattern. Directories and patterns
+    are searched for .pub files; use Recurse to include subdirectories.
+
+    Path accepts pipeline input from strings or objects with a FullName property. Each successful
+    conversion writes one object to the output pipeline. Skipped, ignored, and failed items do
+    not write success objects; they are reported through the warning, error, or verbose streams.
+    Use TransactionLogPath to record all attempted outcomes in an append-only CSV file.
 
     .PARAMETER Path
-    One or more file system paths, wildcard patterns, or directories that contain .pub files.
-    Accepts pipeline input and pipeline property input from FullName.
+    One or more file system paths, wildcard patterns, or directories. A file must have a .pub
+    extension. Directories and wildcard patterns select .pub files for conversion.
+    Accepts pipeline input by value and pipeline property input through the FullName alias.
 
     .PARAMETER Recurse
     When Path points to a directory or wildcard pattern, search subdirectories for .pub files.
 
     .PARAMETER TransactionLogPath
-    Optional path to a CSV file. When provided, all attempts are logged in append mode.
+    Optional path to a CSV file. When specified, the function appends one record for each
+    successful, skipped, ignored, failed, or no-file-found outcome. The parent directory is
+    created when it does not exist. Log columns are Timestamp, SourcePath, PdfPath, Status,
+    and Message.
 
     .PARAMETER ErrorOnExistingPdf
-    When set, existing PDF files are treated as errors instead of being skipped.
+    When set, an existing PDF is reported through the error stream. Without this switch,
+    existing PDFs are skipped and reported through the verbose stream. Existing PDFs never
+    produce success output.
 
     .EXAMPLE
     Convert-PubFileToPdf -Path "C:\Docs\Input\Newsletter.pub"
@@ -32,8 +43,21 @@ function Convert-PubFileToPdf {
     Get-ChildItem -Path "C:\Docs\Input" -Filter "*.pub" -File -Recurse |
         Convert-PubFileToPdf -TransactionLogPath "C:\Logs\pub-conversion.csv"
 
+    .EXAMPLE
+    Convert-PubFileToPdf -Path "C:\Docs\Input" -Recurse -Verbose
+
+    Searches the directory and its subdirectories, converts each .pub file, and displays
+    verbose messages for skipped files and the final conversion summary.
+
     .OUTPUTS
     PSCustomObject
+    On success, each object contains SourcePath, PdfPath, and ConvertedAt properties.
+
+    .INPUTS
+    System.String
+    System.IO.FileInfo
+    System.IO.DirectoryInfo
+    Pipeline input is accepted by value as a path string or by the FullName property.
 
     .NOTES
     Updated with assistance from GitHub Copilot.
