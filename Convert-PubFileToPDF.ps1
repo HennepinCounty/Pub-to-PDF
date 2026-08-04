@@ -34,6 +34,11 @@ function Convert-PubFileToPdf {
 
     .OUTPUTS
     PSCustomObject
+
+    .NOTES
+    Updated with assistance from GitHub Copilot.
+    Model used in this session: GPT-5.3-Codex.
+    Additional edits may have been made by a human author or other tooling.
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
