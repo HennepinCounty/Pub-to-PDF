@@ -38,6 +38,25 @@ Get-ChildItem -Path "C:\Docs\Input" -Filter "*.pub" -File |
 
 The transaction log is appended when the file already exists.
 
+## SharePoint document libraries
+
+`Convert-SharePointPubFileToPdf` stages a `.pub` file from SharePoint locally,
+uses `Convert-PubFileToPdf`, and uploads the resulting PDF to the same library
+folder. It expects an existing PnP.PowerShell connection and Microsoft Publisher
+on the computer running the function.
+
+```powershell
+Connect-PnPOnline -Url 'https://contoso.sharepoint.com/sites/Team' -Interactive
+. .\Convert-PubFileToPDF.ps1
+. .\Convert-SharePointPubFileToPDF.ps1
+
+Convert-SharePointPubFileToPdf `
+	-FileUrl 'https://contoso.sharepoint.com/sites/Team/Shared Documents/Newsletter.pub'
+```
+
+Use `-OverwritePdf` to replace an existing PDF. Use `-WhatIf` to verify the
+download and conversion without uploading the PDF.
+
 ### Treat existing PDFs as errors
 
 ```powershell
