@@ -86,6 +86,7 @@ function Convert-PubFileToPdf {
 
     begin {
         $publisherApp = $null
+        $stopwatch = [System.Diagnostics.Stopwatch]::new()
         $logEnabled = $PSBoundParameters.ContainsKey('TransactionLogPath')
         $successCount = 0
         $failureCount = 0
@@ -139,17 +140,23 @@ function Convert-PubFileToPdf {
         }
 
         try {
-            Add-Type -AssemblyName Microsoft.Office.Interop.Publisher
+            # Add-Type -AssemblyName Microsoft.Office.Interop.Publisher # This doesn't work in PowerShell 7+; use Add-Type -Path with the DLL path instead.
+            Add-Type -Path 'C:\Windows\assembly\GAC_MSIL\Microsoft.Office.Interop.Publisher\15.0.0.0__71e9bce111e9429c\Microsoft.Office.Interop.Publisher.dll'
         }
         catch {
             throw 'Unable to load Microsoft.Office.Interop.Publisher. Ensure Microsoft Publisher is installed.'
         }
 
+        $stopwatch.Restart()
         try {
             $publisherApp = New-Object -ComObject Publisher.Application
         }
         catch {
             throw 'Unable to create Publisher.Application COM object. Ensure Microsoft Publisher is installed and accessible.'
+        }
+        finally {
+            $stopwatch.Stop()
+            Write-Verbose "Publisher COM object loaded in $($stopwatch.Elapsed.TotalMilliseconds.ToString('N2')) ms"
         }
 
         if ($null -eq $publisherApp) {
@@ -219,6 +226,7 @@ function Convert-PubFileToPdf {
                 }
 
                 $document = $null
+                $stopwatch.Restart()
                 try {
                     $document = $publisherApp.Open($sourcePath)
                     if ($null -eq $document) {
@@ -250,6 +258,9 @@ function Convert-PubFileToPdf {
                     Write-Warning "Conversion failed for '$sourcePath': $errorMessage"
                 }
                 finally {
+                    $stopwatch.Stop()
+                    Write-Verbose "Conversion for '$sourcePath' took $($stopwatch.Elapsed.TotalMilliseconds.ToString('N2')) ms"
+
                     if ($null -ne $document) {
                         try {
                             $document.Close()
