@@ -374,7 +374,7 @@ if ($pubFiles.Count -eq 0) {
 }
 
 $conversionParams = @{
-    Path        = $pubFiles
+    Path        = @($pubFiles | ForEach-Object { $_.FullName })
     ErrorAction = 'Continue'
 }
 
